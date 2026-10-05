@@ -3,9 +3,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Hyperkähler Explorer</title>
 <style>
-:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7fb;--card:#fff;--tx:#1b2033;--mu:#5d6580;--ac:#3b5bdb;--ac2:#e7ecff;--bd:#dde1ee}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141c;--card:#1b1e2a;--tx:#e8eaf3;--mu:#9aa2bd;--ac:#8fa6ff;--ac2:#262c4a;--bd:#2c3044}}
-:root[data-theme="dark"]{--bg:#12141c;--card:#1b1e2a;--tx:#e8eaf3;--mu:#9aa2bd;--ac:#8fa6ff;--ac2:#262c4a;--bd:#2c3044}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7fb;--card:#fff;--tx:#1b2033;--mu:#5d6580;--ac:#3b5bdb;--ac2:#e7ecff;--bd:#dde1ee;--onac:#fff}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141c;--card:#1b1e2a;--tx:#e8eaf3;--mu:#9aa2bd;--ac:#8fa6ff;--ac2:#262c4a;--bd:#2c3044;--onac:#12141c}}
+:root[data-theme="dark"]{--bg:#12141c;--card:#1b1e2a;--tx:#e8eaf3;--mu:#9aa2bd;--ac:#8fa6ff;--ac2:#262c4a;--bd:#2c3044;--onac:#12141c}
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
@@ -14,7 +14,12 @@ h1{font-size:1.5rem;margin:0}.sub{color:var(--mu);margin:2px 0 14px}
 nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
 button,input,select{font:inherit;color:inherit}
 .tab,.chip{border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap}
-.tab.on,.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.tab.on,.chip.on{background:var(--ac);color:var(--onac);border-color:var(--ac)}
+:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.tab.on:focus-visible,.chip.on:focus-visible{outline-color:var(--tx)}
+.tab,.chip{min-height:40px}
+@media (forced-colors:active){.tab.on,.chip.on{outline:2px solid CanvasText}}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 input[type=search]{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
 .row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
 details{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin:8px 0;padding:10px 14px}
@@ -31,7 +36,7 @@ code{background:var(--ac2);border-radius:5px;padding:1px 6px}
 </style></head><body><main>
 <h1>Hyperkähler Explorer</h1>
 <p class="sub">Quantum gravity and hyperkähler geometry: spaces, physics, and the Gibbons-Hawking family.</p>
-<nav id="nav"></nav>
+<nav id="nav" role="tablist" aria-label="Sections"></nav>
 <div id="cat"></div><div id="ov" class="hide"></div><div id="gh" class="hide"></div>
 </main>
 <script>
@@ -73,37 +78,46 @@ const OV=[
 const MEM=[["V = 1/(2r)","1","0","Flat ℝ⁴","Flat"],["V = ε + 1/(2r)","1","ε>0","Taub-NUT","ALF"],["V = ε","0","ε>0","ℝ³×S¹","Flat"],["V = Σ 1/(2|x−xᵢ|)","2","0","Eguchi-Hanson","ALE"],["same, k ≥ 2","k","0","A_{k−1} ALE","ℝ⁴/ℤ_k"],["V = ε + Σ 1/(2|x−xᵢ|)","k ≥ 2","ε>0","A_{k−1} multi-Taub-NUT","ALF"],["V = ε + q/(2r), q ≥ 2","1","ε ≥ 0","ℤ_q orbifold (singular)","ALF/ALE"],["Periodic array, regularized","∞","reg.","Ooguri-Vafa (incomplete)","—"]];
 const $=s=>document.querySelector(s);
 const tabs=[["cat","Catalogue"],["ov","Physics overview"],["gh","Gibbons-Hawking"]];
-$("#nav").innerHTML=tabs.map(t=>`<button class="tab" data-t="${t[0]}">${t[1]}</button>`).join("");
-function show(id){tabs.forEach(t=>$("#"+t[0]).classList.toggle("hide",t[0]!=id));document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t==id))}
-$("#nav").onclick=e=>{if(e.target.dataset.t)show(e.target.dataset.t)};show("cat");
+$("#nav").innerHTML=tabs.map(t=>`<button class="tab" role="tab" id="tab-${t[0]}" aria-controls="${t[0]}" data-t="${t[0]}">${t[1]}</button>`).join("");
+tabs.forEach(t=>{const p=$("#"+t[0]);p.setAttribute("role","tabpanel");p.setAttribute("aria-labelledby","tab-"+t[0]);p.tabIndex=0});
+function show(id){tabs.forEach(t=>$("#"+t[0]).classList.toggle("hide",t[0]!=id));document.querySelectorAll(".tab").forEach(b=>{const on=b.dataset.t==id;b.classList.toggle("on",on);b.setAttribute("aria-selected",on);b.tabIndex=on?0:-1})}
+$("#nav").onclick=e=>{if(e.target.dataset.t)show(e.target.dataset.t)};
+$("#nav").onkeydown=e=>{const ids=tabs.map(t=>t[0]),i=ids.indexOf(e.target.dataset.t);if(i<0)return;
+const n={ArrowRight:(i+1)%3,ArrowLeft:(i+2)%3,Home:0,End:2}[e.key];if(n===undefined)return;e.preventDefault();show(ids[n]);$("#tab-"+ids[n]).focus()};
+show("cat");
 // catalogue
-let grp="All",gh=false,q="";const groups=["All",...new Set(SP.map(s=>s[0]))];
-$("#cat").innerHTML=`<input type="search" id="q" placeholder="Search spaces, facts, physics roles…"><div class="row" id="chips"></div><div class="row"><button class="chip" id="ghb">Gibbons-Hawking only</button><span class="muted" id="cnt"></span></div><div id="list"></div>`;
+let grp="All",gm=0,q="";const GHR={1:/^Yes/,2:/^(Yes|A-type|Some|Partly|SU\(2\))/};const groups=["All",...new Set(SP.map(s=>s[0]))];
+$("#cat").innerHTML=`<input type="search" id="q" aria-label="Search spaces, facts, and physics roles" placeholder="Search spaces, facts, physics roles…"><div class="row" id="chips" role="group" aria-label="Filter by group"></div><div class="row"><button class="chip" id="ghs" aria-pressed="false">Gibbons-Hawking members</button><button class="chip" id="ghb" aria-pressed="false">Gibbons-Hawking related</button><button class="chip" id="exp">Expand all</button><button class="chip" id="col">Collapse all</button><button class="chip" id="clr">Clear filters</button><span class="muted" id="cnt" role="status" aria-live="polite"></span></div><div id="list"></div>`;
 function drawCat(){
-$("#chips").innerHTML=groups.map(g=>`<button class="chip ${g==grp?"on":""}" data-g="${g}">${g}</button>`).join("");
-$("#ghb").classList.toggle("on",gh);
-const r=SP.filter(s=>(grp=="All"||s[0]==grp)&&(!gh||/^(Yes|A-type|Some|Partly|SU\(2\))/.test(s[4]))&&(s.join(" ").toLowerCase().includes(q)));
+const fg=document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.g:null;
+$("#chips").innerHTML=groups.map(g=>`<button class="chip ${g==grp?"on":""}" data-g="${g}" aria-pressed="${g==grp}">${g}</button>`).join("");
+if(fg!=null){const b=[...document.querySelectorAll("#chips .chip")].find(c=>c.dataset.g==fg);if(b)b.focus()}
+[["ghs",1],["ghb",2]].forEach(([i,m])=>{$("#"+i).classList.toggle("on",gm==m);$("#"+i).setAttribute("aria-pressed",gm==m)});
+const r=SP.filter(s=>(grp=="All"||s[0]==grp)&&(!gm||GHR[gm].test(s[4]))&&(s.join(" ").toLowerCase().includes(q)));
 $("#cnt").textContent=r.length+" of "+SP.length+" spaces";
 $("#list").innerHTML=r.map(s=>`<details><summary>${s[1]}<span class="tag">${s[0]}</span><span class="tag">dim ${s[2]}</span></summary><dl><dt>Compact</dt><dd>${s[3]}</dd><dt>Gibbons-Hawking</dt><dd>${s[4]}</dd><dt>Key facts</dt><dd>${s[5]}</dd><dt>Physics role</dt><dd>${s[6]}</dd></dl></details>`).join("")||'<p class="muted">No matches.</p>'}
 $("#q").oninput=e=>{q=e.target.value.toLowerCase();drawCat()};
 $("#chips").onclick=e=>{if(e.target.dataset.g){grp=e.target.dataset.g;drawCat()}};
-$("#ghb").onclick=()=>{gh=!gh;drawCat()};drawCat();
+$("#ghs").onclick=()=>{gm=gm==1?0:1;drawCat()};$("#ghb").onclick=()=>{gm=gm==2?0:2;drawCat()};
+$("#exp").onclick=()=>$("#list").querySelectorAll("details").forEach(d=>d.open=true);
+$("#col").onclick=()=>$("#list").querySelectorAll("details").forEach(d=>d.open=false);
+$("#clr").onclick=()=>{grp="All";gm=0;q="";$("#q").value="";drawCat()};drawCat();
 // overview
 $("#ov").innerHTML=OV.map(t=>`<details open><summary>${t[0]}</summary><dl>${t[1].map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl></details>`).join("");
 // GH
 $("#gh").innerHTML=`<div class="card"><p>Metric: <code>ds² = V dx·dx + V⁻¹(dτ + ω)²</code>, with <code>∇×ω = ∇V</code> and V harmonic on ℝ³. Take <code>V = ε + Σ 1/(2|x−xᵢ|)</code> with unit charges and τ of period 4π.</p>
-<label>Centers k: <span id="kv"></span></label><input type="range" id="k" min="0" max="10" value="3">
-<label>Constant ε: <span id="ev"></span></label><input type="range" id="e" min="0" max="2" step="0.1" value="0.5">
-<svg id="sv" viewBox="0 0 400 70" width="100%" role="img" aria-label="Centers on a line"></svg>
-<div class="grid" id="st"></div></div>
-<div class="card scroll"><b>Family members</b><table><tr><th>Harmonic function</th><th>k</th><th>ε</th><th>Space</th><th>Asymptotics</th></tr>${MEM.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>
-<div class="card"><b>Properties</b><ul><li>Topology: k centers give k−1 two-cycles with the A_{k−1} intersection form.</li><li>Moduli: 3(k−1) after removing translations (matches Kronheimer for ALE).</li><li>Limits: ε → 0 takes ALF to ALE; coincident centers give the orbifold ℝ⁴/ℤ_k.</li><li>Outside the ansatz: Atiyah-Hitchin and D_k ALF (no triholomorphic U(1)).</li></ul></div>`;
-function drawGH(){const k=+$("#k").value,e=+$("#e").value;$("#kv").textContent=k;$("#ev").textContent=e.toFixed(1);
-const asym=k==0&&e==0?"Undefined (V = 0)":e==0?(k==1?"Flat ℝ⁴":"ALE: ℝ⁴/ℤ"+k):"ALF: circle over ℝ³";
-const sp=k==0?"ℝ³×S¹ (V = ε)":k==1?(e==0?"Flat ℝ⁴":"Taub-NUT"):e==0?(k==2?"Eguchi-Hanson":"A"+(k-1)+" ALE"):"A"+(k-1)+" multi-Taub-NUT";
+<label for="k">Centers k: <span id="kv"></span></label><input type="range" id="k" min="0" max="10" value="3">
+<label for="e">Constant ε: <span id="ev"></span></label><input type="range" id="e" min="0" max="2" step="0.1" value="0.5">
+<svg id="sv" viewBox="0 0 400 90" width="100%" role="img" aria-label="Centers on a line"></svg>
+<div class="grid" id="st" role="status" aria-live="polite" aria-label="Results"></div></div>
+<div class="card scroll" role="region" aria-label="Family members table" tabindex="0"><table><caption style="text-align:left;font-weight:700;padding-bottom:6px">Family members</caption><tr><th scope="col">Harmonic function</th><th scope="col">k</th><th scope="col">ε</th><th scope="col">Space</th><th scope="col">Asymptotics</th></tr>${MEM.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>
+<details open><summary>Properties</summary><ul><li>Topology: k centers give k−1 two-cycles with the A_{k−1} intersection form.</li><li>Moduli: 3(k−1) after removing translations (matches Kronheimer for ALE).</li><li>Limits: ε → 0 takes ALF to ALE; coincident centers give the orbifold ℝ⁴/ℤ_k.</li><li>Outside the ansatz: Atiyah-Hitchin and D_k ALF (no triholomorphic U(1)).</li></ul></details>`;
+function drawGH(){const k=+$("#k").value,e=+$("#e").value;$("#kv").textContent=k;$("#k").setAttribute("aria-valuetext",k+(k==1?" center":" centers"));$("#ev").textContent=e.toFixed(1);
+const asym=k==0&&e==0?"Undefined (V = 0)":e==0?(k==1?"Flat ℝ⁴":"ALE: ℝ⁴/ℤ"+k):k==0?"Flat ℝ³×S¹":"ALF: circle over ℝ³";
+const sp=k==0?(e==0?"Undefined (V = 0)":"ℝ³×S¹ (V = ε)"):k==1?(e==0?"Flat ℝ⁴":"Taub-NUT"):e==0?(k==2?"Eguchi-Hanson":"A"+(k-1)+" ALE"):"A"+(k-1)+" multi-Taub-NUT";
 const S=[["Space",sp],["2-cycles",Math.max(k-1,0)],["Center moduli",3*Math.max(k-1,0)],["Asymptotics",asym]];
 $("#st").innerHTML=S.map(s=>`<div class="stat">${s[0]}<b>${s[1]}</b></div>`).join("");
 let d="";for(let i=0;i<k;i++){const x=k==1?200:30+i*340/(k-1);d+=`<circle cx="${x}" cy="35" r="7" fill="var(--ac)"/>`;if(i)d+=`<line x1="${30+(i-1)*340/(k-1)}" y1="35" x2="${x}" y2="35" stroke="var(--ac)" stroke-width="2" opacity=".5"/>`}
-$("#sv").innerHTML=d}
+d+=e>0?`<rect x="10" y="58" width="380" height="8" rx="4" fill="var(--ac)" opacity="${0.15+0.35*e/2}"/><text x="200" y="82" text-anchor="middle" font-size="11" fill="var(--mu)">ε &gt; 0: circle fiber of fixed size at infinity (ALF)</text>`:`<text x="200" y="82" text-anchor="middle" font-size="11" fill="var(--mu)">ε = 0: fiber shrinks at infinity (ALE: ℝ⁴/ℤ_k). Schematic spacing.</text>`;$("#sv").innerHTML=d;$("#sv").setAttribute("aria-label",k+(k==1?" center":" centers")+" on a line, "+(e==0?"constant term zero":"constant term "+e.toFixed(1)))}
 $("#k").oninput=$("#e").oninput=drawGH;drawGH();
 </script></body></html>
