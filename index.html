@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hyperkähler Explorer</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f6f7fb;--card:#fff;--tx:#1b2033;--mu:#5d6580;--ac:#3b5bdb;--ac2:#e7ecff;--bd:#dde1ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12141c;--card:#1b1e2a;--tx:#e8eaf3;--mu:#9aa2bd;--ac:#8fa6ff;--ac2:#262c4a;--bd:#2c3044}}
+:root[data-theme="dark"]{--bg:#12141c;--card:#1b1e2a;--tx:#e8eaf3;--mu:#9aa2bd;--ac:#8fa6ff;--ac2:#262c4a;--bd:#2c3044}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 -apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+main{max-width:980px;margin:0 auto;padding:18px 14px 60px}
+h1{font-size:1.5rem;margin:0}.sub{color:var(--mu);margin:2px 0 14px}
+nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
+button,input,select{font:inherit;color:inherit}
+.tab,.chip{border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap}
+.tab.on,.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+input[type=search]{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+details{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin:8px 0;padding:10px 14px}
+summary{cursor:pointer;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tag{font-size:.72rem;font-weight:500;background:var(--ac2);color:var(--ac);border-radius:6px;padding:1px 8px}
+dl{margin:8px 0 0;display:grid;grid-template-columns:110px 1fr;gap:4px 10px}dt{color:var(--mu)}dd{margin:0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.stat{background:var(--ac2);border-radius:10px;padding:10px 12px}.stat b{display:block;font-size:1.3rem;color:var(--ac)}
+label{display:block;margin:10px 0 2px;font-weight:600}input[type=range]{width:100%}
+.scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:560px}th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:left;vertical-align:top}th{color:var(--mu);font-weight:600}
+code{background:var(--ac2);border-radius:5px;padding:1px 6px}
+.hide{display:none}.muted{color:var(--mu)}
+</style></head><body><main>
+<h1>Hyperkähler Explorer</h1>
+<p class="sub">Quantum gravity and hyperkähler geometry: spaces, physics, and the Gibbons-Hawking family.</p>
+<nav id="nav"></nav>
+<section id="cat"></section><section id="ov" class="hide"></section><section id="gh" class="hide"></section>
+</main>
+<script>
+const SP=[
+["Noncompact 4D","Flat ℝ⁴","4","No","Yes","Trivial holonomy. Gibbons-Hawking with V = 1/(2r).","Vacuum; ALE/ALF reference."],
+["Noncompact 4D","ℝ³×S¹","4","No","Yes","Flat. V = ε.","Kaluza-Klein vacuum."],
+["Noncompact 4D","Eguchi-Hanson (T*CP¹)","4","No","Yes","A₁ ALE, asymptotic to ℝ⁴/ℤ₂; k = 2, ε = 0.","Original gravitational instanton."],
+["Noncompact 4D","Multi-Eguchi-Hanson / A_{k−1} ALE","4","No","Yes","k−1 two-cycles; asymptotic to ℝ⁴/ℤ_k.","Resolved ℤ_k orbifolds; KK-monopole stacks."],
+["Noncompact 4D","Taub-NUT","4","No","Yes","ALF; k = 1, ε > 0.","Kaluza-Klein monopole (M-theory lift of D6)."],
+["Noncompact 4D","Multi-Taub-NUT (A_{k−1} ALF)","4","No","Yes","k−1 two-cycles; ALF.","Stacks of KK monopoles."],
+["Noncompact 4D","ADE ALE spaces","4","No","A-type only","Kronheimer hyperkähler quotient; asymptotic to ℝ⁴/Γ, Γ ⊂ SU(2).","ADE enhancement in IIA on K3."],
+["Noncompact 4D","D_k ALF","4","No","No","No triholomorphic U(1).","Orientifold (O6) geometries."],
+["Noncompact 4D","Atiyah-Hitchin manifold","4","No","No","Moduli of centered 2-monopoles; SO(3) isometry.","3D N=4 SU(2) Coulomb branch."],
+["Noncompact 4D","ALG instantons","4","No","Some","Volume growth r².","Classification of complete 4D hyperkähler metrics."],
+["Noncompact 4D","ALH instantons","4","No","Some","Volume growth r.","Classification of complete 4D hyperkähler metrics."],
+["Compact","T⁴","4","Yes","No","Flat torus.","Toroidal compactification."],
+["Compact","K3","4","Yes","No","Holonomy SU(2); unique simply connected compact example.","16 supercharges; IIA on K3 ↔ heterotic on T⁴."],
+["Compact","Hilb^n(K3)","4n","Yes","No","Hilbert scheme of n points on K3.","D1-D5 bound states; Strominger-Vafa counting."],
+["Compact","Generalized Kummer K_n(T⁴)","4n","Yes","No","Built from n+1 points on an abelian surface.","D-brane moduli on T⁴."],
+["Compact","O'Grady OG6","12 (complex 6)","Yes","No","Exceptional irreducible example.","Mostly mathematical."],
+["Compact","O'Grady OG10","20 (complex 10)","Yes","No","Exceptional irreducible example.","Mostly mathematical."],
+["Moduli spaces","Instanton moduli (ADHM)","4kN (framed)","No","No","Hyperkähler quotient of flat space.","D-brane bound states; Higgs branches."],
+["Moduli spaces","Monopole moduli (Atiyah-Hitchin, Gibbons-Manton)","4k","No","Partly","Charge-k SU(2) monopoles; includes ℝ³×S¹ center factor.","D1-D3 systems."],
+["Moduli spaces","Hitchin moduli of Higgs bundles","Depends on genus, group","No","No","Stable Higgs bundles on a Riemann surface.","Mirror symmetry; Langlands; class S."],
+["Moduli spaces","Sheaf moduli on K3 or T⁴","2v² + 4","Yes","No","v = Mukai vector; Hilb^n(K3) type.","BPS counting; D-brane charges."],
+["Moduli spaces","Sym^N(K3)","4N (orbifold)","Yes","No","Singular; resolved by Hilb^N(K3).","Target of the D1-D5 CFT."],
+["SUSY branches","Higgs branches (4D N=2, 3D N=4)","4 × quaternionic dim","Often no","Case by case","Nilpotent orbit closures, Slodowy slices.","Vacuum moduli."],
+["SUSY branches","Coulomb branches of 3D N=4","4 × rank","No","SU(2): yes","Seiberg-Witten-type geometry.","3D mirror symmetry."],
+["SUSY branches","Rigid N=2 hypermultiplet scalars","4 × # hypers","—","—","Hyperkähler in the rigid limit.","Quaternionic-Kähler once coupled to gravity."],
+["Not hyperkähler","Quaternionic-Kähler (c-map)","4n","—","No","Holonomy in Sp(n)·Sp(1); not Ricci-flat.","Hypermultiplet moduli of Calabi-Yau compactification."],
+["Not hyperkähler","Twistor space of a QK manifold","4n + 2","—","No","Complex contact manifold.","Encodes QK geometry."],
+["Hyperkähler cone","Swann bundle over a QK manifold","4n + 4","No","No","Hyperkähler cone over the QK base.","Rigid-limit supergravity moduli."]];
+const OV=[
+["1. Gravitational instantons",[["Definition","4D hyperkähler = Ricci-flat, (anti-)self-dual, holonomy in SU(2) ≅ Sp(1)."],["Examples","Eguchi-Hanson, Taub-NUT, Gibbons-Hawking, ALE/ALF, K3."],["Role","Saddle points of the Euclidean gravitational path integral; self-duality preserves half the supersymmetry."]]],
+["2. String and M-theory",[["K3","16 supercharges; heterotic on T⁴ ↔ IIA on K3."],["Taub-NUT","Kaluza-Klein monopole, the M-theory lift of D6."],["D-brane moduli","ADHM, Hilb^n(K3), Sym^N(K3); basis of Strominger-Vafa microstate counting."]]],
+["3. SUSY and moduli geometry",[["Rigid N=2","Hypermultiplet scalars are hyperkähler."],["With gravity","Becomes quaternionic-Kähler (Bagger-Witten)."],["c-map","Hypermultiplet moduli of CY compactifications, with D-instanton corrections."],["3D N=4","Coulomb branches are hyperkähler."]]],
+["4. Twistor and self-dual gravity",[["Nonlinear graviton","Penrose: self-dual Ricci-flat spaces from twistor data."],["Plebański","Single scalar potential via the heavenly equations."],["Twistor space","Hitchin-Karlhede-Lindström-Roček: twistor spaces fibered over CP¹."],["Celestial","Integrable self-dual sector; w₁₊∞ symmetry (Strominger et al.)."]]],
+["5. Mathematical structure",[["Hyperkähler quotient","Builds many of these spaces; mirrors moment maps and Higgs-branch geometry."]]]];
+const MEM=[["V = 1/(2r)","1","0","Flat ℝ⁴","Flat"],["V = ε + 1/(2r)","1","ε>0","Taub-NUT","ALF"],["V = ε","0","ε>0","ℝ³×S¹","Flat"],["V = Σ 1/(2|x−xᵢ|)","2","0","Eguchi-Hanson","ALE"],["same, k ≥ 2","k","0","A_{k−1} ALE","ℝ⁴/ℤ_k"],["V = ε + Σ 1/(2|x−xᵢ|)","k ≥ 2","ε>0","A_{k−1} multi-Taub-NUT","ALF"],["V = ε + q/(2r), q ≥ 2","1","ε ≥ 0","ℤ_q orbifold (singular)","ALF/ALE"],["Periodic array, regularized","∞","reg.","Ooguri-Vafa (incomplete)","—"]];
+const $=s=>document.querySelector(s);
+const tabs=[["cat","Catalogue"],["ov","Physics overview"],["gh","Gibbons-Hawking"]];
+$("#nav").innerHTML=tabs.map(t=>`<button class="tab" data-t="${t[0]}">${t[1]}</button>`).join("");
+function show(id){tabs.forEach(t=>$("#"+t[0]).classList.toggle("hide",t[0]!=id));document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t==id))}
+$("#nav").onclick=e=>{if(e.target.dataset.t)show(e.target.dataset.t)};show("cat");
+// catalogue
+let grp="All",gh=false,q="";const groups=["All",...new Set(SP.map(s=>s[0]))];
+$("#cat").innerHTML=`<input type="search" id="q" placeholder="Search spaces, facts, physics roles…"><div class="row" id="chips"></div><div class="row"><button class="chip" id="ghb">Gibbons-Hawking only</button><span class="muted" id="cnt"></span></div><div id="list"></div>`;
+function drawCat(){
+$("#chips").innerHTML=groups.map(g=>`<button class="chip ${g==grp?"on":""}" data-g="${g}">${g}</button>`).join("");
+$("#ghb").classList.toggle("on",gh);
+const r=SP.filter(s=>(grp=="All"||s[0]==grp)&&(!gh||/^(Yes|A-type|Some|Partly|SU\(2\))/.test(s[4]))&&(s.join(" ").toLowerCase().includes(q)));
+$("#cnt").textContent=r.length+" of "+SP.length+" spaces";
+$("#list").innerHTML=r.map(s=>`<details><summary>${s[1]}<span class="tag">${s[0]}</span><span class="tag">dim ${s[2]}</span></summary><dl><dt>Compact</dt><dd>${s[3]}</dd><dt>Gibbons-Hawking</dt><dd>${s[4]}</dd><dt>Key facts</dt><dd>${s[5]}</dd><dt>Physics role</dt><dd>${s[6]}</dd></dl></details>`).join("")||'<p class="muted">No matches.</p>'}
+$("#q").oninput=e=>{q=e.target.value.toLowerCase();drawCat()};
+$("#chips").onclick=e=>{if(e.target.dataset.g){grp=e.target.dataset.g;drawCat()}};
+$("#ghb").onclick=()=>{gh=!gh;drawCat()};drawCat();
+// overview
+$("#ov").innerHTML=OV.map(t=>`<details open><summary>${t[0]}</summary><dl>${t[1].map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl></details>`).join("");
+// GH
+$("#gh").innerHTML=`<div class="card"><p>Metric: <code>ds² = V dx·dx + V⁻¹(dτ + ω)²</code>, with <code>∇×ω = ∇V</code> and V harmonic on ℝ³. Take <code>V = ε + Σ 1/(2|x−xᵢ|)</code> with unit charges and τ of period 4π.</p>
+<label>Centers k: <span id="kv"></span></label><input type="range" id="k" min="0" max="10" value="3">
+<label>Constant ε: <span id="ev"></span></label><input type="range" id="e" min="0" max="2" step="0.1" value="0.5">
+<svg id="sv" viewBox="0 0 400 70" width="100%" role="img" aria-label="Centers on a line"></svg>
+<div class="grid" id="st"></div></div>
+<div class="card scroll"><b>Family members</b><table><tr><th>Harmonic function</th><th>k</th><th>ε</th><th>Space</th><th>Asymptotics</th></tr>${MEM.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</table></div>
+<div class="card"><b>Properties</b><ul><li>Topology: k centers give k−1 two-cycles with the A_{k−1} intersection form.</li><li>Moduli: 3(k−1) after removing translations (matches Kronheimer for ALE).</li><li>Limits: ε → 0 takes ALF to ALE; coincident centers give the orbifold ℝ⁴/ℤ_k.</li><li>Outside the ansatz: Atiyah-Hitchin and D_k ALF (no triholomorphic U(1)).</li></ul></div>`;
+function drawGH(){const k=+$("#k").value,e=+$("#e").value;$("#kv").textContent=k;$("#ev").textContent=e.toFixed(1);
+const asym=k==0&&e==0?"Undefined (V = 0)":e==0?(k==1?"Flat ℝ⁴":"ALE: ℝ⁴/ℤ"+k):"ALF: circle over ℝ³";
+const sp=k==0?"ℝ³×S¹ (V = ε)":k==1?(e==0?"Flat ℝ⁴":"Taub-NUT"):e==0?(k==2?"Eguchi-Hanson":"A"+(k-1)+" ALE"):"A"+(k-1)+" multi-Taub-NUT";
+const S=[["Space",sp],["2-cycles",Math.max(k-1,0)],["Center moduli",3*Math.max(k-1,0)],["Asymptotics",asym]];
+$("#st").innerHTML=S.map(s=>`<div class="stat">${s[0]}<b>${s[1]}</b></div>`).join("");
+let d="";for(let i=0;i<k;i++){const x=k==1?200:30+i*340/(k-1);d+=`<circle cx="${x}" cy="35" r="7" fill="var(--ac)"/>`;if(i)d+=`<line x1="${30+(i-1)*340/(k-1)}" y1="35" x2="${x}" y2="35" stroke="var(--ac)" stroke-width="2" opacity=".5"/>`}
+$("#sv").innerHTML=d}
+$("#k").oninput=$("#e").oninput=drawGH;drawGH();
+</script></body></html>
