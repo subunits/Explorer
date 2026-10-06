@@ -15,6 +15,8 @@ nav{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px}
 button,input,select{font:inherit;color:inherit}
 .tab,.chip{border:1px solid var(--bd);background:var(--card);border-radius:999px;padding:6px 14px;cursor:pointer;white-space:nowrap}
 .tab.on,.chip.on{background:var(--ac);color:var(--onac);border-color:var(--ac)}
+button:hover:not(:disabled),.tab:hover:not(.on),.chip:hover:not(.on){border-color:var(--ac);background:var(--ac2)}
+button:disabled,.chip:disabled{opacity:0.5;cursor:not-allowed;border-color:var(--bd);background:var(--card)}
 :focus-visible{outline:3px solid var(--ac);outline-offset:2px}
 .tab.on:focus-visible,.chip.on:focus-visible{outline-color:var(--tx)}
 .tab,.chip{min-height:40px}
@@ -87,12 +89,14 @@ const n={ArrowRight:(i+1)%3,ArrowLeft:(i+2)%3,Home:0,End:2}[e.key];if(n===undefi
 show("cat");
 // catalogue
 let grp="All",gm=0,q="";const GHR={1:/^Yes/,2:/^(Yes|A-type|Some|Partly|SU\(2\))/};const groups=["All",...new Set(SP.map(s=>s[0]))];
-$("#cat").innerHTML=`<input type="search" id="q" aria-label="Search spaces, facts, and physics roles" placeholder="Search spaces, facts, physics roles…"><div class="row" id="chips" role="group" aria-label="Filter by group"></div><div class="row"><button class="chip" id="ghs" aria-pressed="false">Gibbons-Hawking members</button><button class="chip" id="ghb" aria-pressed="false">Gibbons-Hawking related</button><button class="chip" id="exp">Expand all</button><button class="chip" id="col">Collapse all</button><button class="chip" id="clr">Clear filters</button><span class="muted" id="cnt" role="status" aria-live="polite"></span></div><div id="list"></div>`;
+$("#cat").innerHTML=`<input type="search" id="q" aria-label="Search spaces, facts, and physics roles" placeholder="Search spaces, facts, physics roles…"><div class="row" id="chips" role="group" aria-label="Filter by group"></div><div class="row"><button class="chip" id="ghs" aria-pressed="false">Gibbons-Hawking members</button><button class="chip" id="ghb" aria-pressed="false">Gibbons-Hawking related</button><button class="chip" id="exp">Expand all</button><button class="chip" id="col">Collapse all</button><button class="chip" id="clr" disabled>Clear filters</button><span class="muted" id="cnt" role="status" aria-live="polite"></span></div><div id="list"></div>`;
 function drawCat(){
 const fg=document.activeElement&&document.activeElement.dataset?document.activeElement.dataset.g:null;
 $("#chips").innerHTML=groups.map(g=>`<button class="chip ${g==grp?"on":""}" data-g="${g}" aria-pressed="${g==grp}">${g}</button>`).join("");
 if(fg!=null){const b=[...document.querySelectorAll("#chips .chip")].find(c=>c.dataset.g==fg);if(b)b.focus()}
 [["ghs",1],["ghb",2]].forEach(([i,m])=>{$("#"+i).classList.toggle("on",gm==m);$("#"+i).setAttribute("aria-pressed",gm==m)});
+const isFiltered=grp!=="All"||gm!==0||q!=="";
+$("#clr").disabled=!isFiltered;
 const r=SP.filter(s=>(grp=="All"||s[0]==grp)&&(!gm||GHR[gm].test(s[4]))&&(s.join(" ").toLowerCase().includes(q)));
 $("#cnt").textContent=r.length+" of "+SP.length+" spaces";
 $("#list").innerHTML=r.map(s=>`<details><summary>${s[1]}<span class="tag">${s[0]}</span><span class="tag">dim ${s[2]}</span></summary><dl><dt>Compact</dt><dd>${s[3]}</dd><dt>Gibbons-Hawking</dt><dd>${s[4]}</dd><dt>Key facts</dt><dd>${s[5]}</dd><dt>Physics role</dt><dd>${s[6]}</dd></dl></details>`).join("")||'<p class="muted">No matches.</p>'}
