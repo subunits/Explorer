@@ -21,7 +21,7 @@ button,input,select{font:inherit;color:inherit}
 @media (forced-colors:active){.tab.on,.chip.on{outline:2px solid CanvasText}}
 @media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 input[type=search]{width:100%;padding:10px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card)}
-.row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.row{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;align-items:center}
 details{background:var(--card);border:1px solid var(--bd);border-radius:12px;margin:8px 0;padding:10px 14px}
 summary{cursor:pointer;font-weight:600;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .tag{font-size:.72rem;font-weight:500;background:var(--ac2);color:var(--ac);border-radius:6px;padding:1px 8px}
@@ -33,6 +33,42 @@ label{display:block;margin:10px 0 2px;font-weight:600}input[type=range]{width:10
 .scroll{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:560px}th,td{border-bottom:1px solid var(--bd);padding:6px 8px;text-align:left;vertical-align:top}th{color:var(--mu);font-weight:600}
 code{background:var(--ac2);border-radius:5px;padding:1px 6px}
 .hide{display:none}.muted{color:var(--mu)}
+
+/* Flower-inspired badge counter styling */
+#cnt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: #5c2c4d;
+  background: linear-gradient(135deg, #fce4ec 0%, #f3e5f5 50%, #e8eaf6 100%);
+  border: 1px solid #f8bbd0;
+  box-shadow: 0 2px 8px rgba(233, 30, 99, 0.08);
+  min-height: 40px;
+}
+
+#cnt::before {
+  content: "🌸";
+  font-size: 0.95rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) #cnt {
+    color: #f8bbd0;
+    background: linear-gradient(135deg, #3c1e2e 0%, #2e1c38 50%, #1e2438 100%);
+    border-color: #5c2c4d;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+}
+:root[data-theme="dark"] #cnt {
+  color: #f8bbd0;
+  background: linear-gradient(135deg, #3c1e2e 0%, #2e1c38 50%, #1e2438 100%);
+  border-color: #5c2c4d;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
 </style></head><body><main>
 <h1>Hyperkähler Explorer</h1>
 <p class="sub">Quantum gravity and hyperkähler geometry: spaces, physics, and the Gibbons-Hawking family.</p>
